@@ -60,11 +60,6 @@ def test_model_loads_from_configured_path(configured_model: FakeClassifier) -> N
     assert pipeline.enabled is True
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="validate_prompt hands the flat 768-float embedding straight to predict(), "
-    "which requires a 2-D (n_samples, n_features) array",
-)
 def test_predict_receives_2d_array(
     unconfigured_model: None, fake_classifier: FakeClassifier, patched_embedding: list[float]
 ) -> None:
@@ -85,18 +80,14 @@ def test_predict_receives_2d_array(
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="the model never loads and the flat embedding makes predict() raise, "
-    "so run() falls through to ActionStatus.ALLOW",
-)
 async def test_malicious_prompt_is_blocked(configured_model: FakeClassifier, patched_embedding: list[float]) -> None:
     """
     A prompt the model labels malicious is blocked end to end.
 
-    This is the pipeline's entire purpose, and it is also the security defect:
-    an operator enables the ML pipeline, sees it listed in the flow, and every
-    prompt the model would flag is allowed through anyway.
+    This is the pipeline's entire purpose and the regression that matters most:
+    while the model could not be loaded and the flat embedding made predict()
+    raise, an operator saw the ML pipeline listed in the flow while every prompt
+    the model would have flagged was allowed through anyway.
     """
     pipeline = ml_pipeline.MLPipeline()
 

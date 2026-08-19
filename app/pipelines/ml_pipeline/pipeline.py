@@ -1,4 +1,5 @@
 import joblib
+import numpy as np
 
 from app.core.enums import ActionStatus, PipelineNames, RuleAction
 from app.core.pipeline import BasePipeline
@@ -68,16 +69,26 @@ class MLPipeline(BasePipeline):
         Converts text prompt to vector representation and passes it
         to ML model for classification to detect malicious content.
 
+        The classifier expects a 2-D (1, n_features) array while text_embedding
+        returns a flat list, so the embedding is reshaped before prediction.
+        float32 is deliberate: scikit-learn casts to it anyway, so doing it here
+        avoids an extra float64 copy on the hot path. Embeddings arrive already
+        normalized (normalize_embeddings=True), which makes cosine distance
+        between them a plain dot product.
+
         Args:
             prompt (str): Text prompt for analysis
 
         Returns:
-            Model classification result or None on embedding creation error
+            Model classification result, or None if the embedding is unusable
         """
         try:
-            if embedding := text_embedding(prompt):
-                predict = self.model_classifier.predict(embedding)
-                return predict
+            embedding = text_embedding(prompt)
+            if not embedding:
+                bastion_logger.error(f"Empty embedding, cannot classify prompt of length {len(prompt)}")
+                return None
+            features = np.asarray(embedding, dtype=np.float32).reshape(1, -1)
+            return self.model_classifier.predict(features)
         except Exception as err:
             bastion_logger.warning(f"Error validating prompt, error={str(err)}")
 
