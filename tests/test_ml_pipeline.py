@@ -47,11 +47,6 @@ async def test_pipeline_disabled_returns_allow(unconfigured_model: None, patched
     assert result.triggered_rules == []
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="_load_model checks settings.ML_MODEL_PATH but loads settings.ML_PIPELINE_PATH, "
-    "a field Settings does not define, so the AttributeError is swallowed and no model is ever loaded",
-)
 def test_model_loads_from_configured_path(configured_model: FakeClassifier) -> None:
     """
     A configured ML_MODEL_PATH results in a loaded classifier and an enabled pipeline.

@@ -57,9 +57,9 @@ class MLPipeline(BasePipeline):
         if not settings.ML_MODEL_PATH:
             return None
         try:
-            return joblib.load(settings.ML_PIPELINE_PATH)
+            return joblib.load(settings.ML_MODEL_PATH)
         except Exception as err:
-            bastion_logger.error(f"Error loading model, error={str(err)}")
+            bastion_logger.error(f"Error loading model from {settings.ML_MODEL_PATH}, error={err}")
 
     def validate_prompt(self, prompt: str):
         """
