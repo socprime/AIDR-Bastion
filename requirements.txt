@@ -14,4 +14,7 @@ semgrep==1.122.0
 einops==0.8.1
 nltk>=3.9
 sentence-transformers==4.1.0
+# imported directly by app/pipelines/ml_pipeline, not just pulled in by sentence-transformers
+joblib==1.5.3
+scikit-learn==1.9.0
 confluent-kafka>=2.3.0
